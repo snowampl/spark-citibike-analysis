@@ -3,7 +3,8 @@ if [ -z "$AWS_CLUSTER" ]; then
   exit 1
 fi
 
-APPLICATION_JAR=build/libs/bikeshare.jar
+APPLICATION_JAR=build/libs/spark-citibike-analysis.jar
+MAIN_CLASS=Bikeshare
 
 if [ ! -f $APPLICATION_JAR ]; then
   echo '[error]: must run "./gradlew build" first'
@@ -11,6 +12,6 @@ if [ ! -f $APPLICATION_JAR ]; then
 fi
 
 echo "Copying jar to cluster"
-scp $APPLICATION_JAR root@$AWS_CLUSTER:/root/
-ssh root@$AWS_CLUSTER /root/spark/bin/spark-submit --master spark://$AWS_CLUSTER:7077 --class Bikeshare /root/$(basename $APPLICATION_JAR)
+scp build/libs/* root@$AWS_CLUSTER:/root/
+ssh root@$AWS_CLUSTER '/root/spark/bin/spark-submit --master spark://$AWS_CLUSTER:7077 --class $MAIN_CLASS --jars "\$(find /root -maxdepth 1 -name *.jar -print0 | tr "\0" ",")" /root/\$(basename $APPLICATION_JAR)'
 
